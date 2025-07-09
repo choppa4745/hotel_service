@@ -14,7 +14,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Getter
 @Setter
-@ToString
+//@ToString
 @FieldNameConstants
 public class Hotel {
 
