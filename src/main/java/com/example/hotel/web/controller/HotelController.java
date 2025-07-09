@@ -1,4 +1,4 @@
-package com.example.hotel.controller;
+package com.example.hotel.web.controller;
 
 import com.example.hotel.entity.Hotel;
 import com.example.hotel.mapper.HotelMapper;
