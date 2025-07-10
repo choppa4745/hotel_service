@@ -15,6 +15,12 @@ spring:
       schema: hotel_schema
       connection-init-sql: CREATE SCHEMA IF NOT EXISTS hotel_schema
       connection-timeout: 10000
+  security:
+    user:
+      password:
+        encoder:
+          bcrypt:
+            strength: 10
 
 
 
