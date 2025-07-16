@@ -8,7 +8,6 @@ import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
-    @Mapping(target = "password", ignore = true)
     UserResponse userToUserResponse(User user);
 
     @Mapping(target = "id", ignore = true)
