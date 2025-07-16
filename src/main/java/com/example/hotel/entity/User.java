@@ -3,6 +3,7 @@ package com.example.hotel.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Table(name = "users",
@@ -17,7 +18,7 @@ import java.util.Set;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String username;
