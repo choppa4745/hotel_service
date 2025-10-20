@@ -10,6 +10,6 @@ public interface HotelRepository extends JpaRepository<Hotel, UUID> {
 
     Optional<Hotel> findByHotelName(String hotelName);
 
-    boolean existsByHotelName(String hotelName);
+    boolean existsByHotelName(String EventName);
 }
 

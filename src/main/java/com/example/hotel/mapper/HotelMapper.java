@@ -19,5 +19,7 @@ public interface HotelMapper {
     Hotel upsertRequestToHotel(UpsertHotelRequest request);
 
     HotelEditResponse hotelToEditResponse(Hotel hotel);
+
+    @Mapping(target = "timeDistanceFromCenter", expression = "java(hotel.getTimeDistanceFromCenter().toString())")
     HotelResponse hotelToResponse(Hotel hotel);
 }
