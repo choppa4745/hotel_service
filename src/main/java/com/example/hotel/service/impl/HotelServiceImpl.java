@@ -60,7 +60,6 @@ public class HotelServiceImpl implements HotelService {
         repository.deleteById(id);
     }
 
-    // Специфичные методы для отелей
     @Override
     public Hotel findByHotelName(String hotelName) {
         return repository.findByHotelName(hotelName)
