@@ -1,88 +1,79 @@
 package com.example.hotel.configuration;
 
-import com.example.hotel.entity.Role;
 import com.example.hotel.service.impl.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
-import static org.springframework.security.web.util.matcher.AntPathRequestMatcher.antMatcher;
-
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
-
-    private final CustomUserDetailsService userDetailsService;
-
-    public SecurityConfig(CustomUserDetailsService userDetailsService) {
-        this.userDetailsService = userDetailsService;
-    }
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                antMatcher("/v3/api-docs/**"),
-                                antMatcher("/swagger-ui/**"),
-                                antMatcher("/swagger-ui.html")
-                        ).permitAll()
-                        .requestMatchers("/api/auth/register").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/hotels/**", "/api/rooms/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/hotels/**", "/api/rooms/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/hotels/**", "/api/rooms/**").hasRole("ADMIN")
-                        .requestMatchers("/api/bookings/**").hasRole("ADMIN")
-                        .anyRequest().authenticated()
-                )
-                .httpBasic(Customizer.withDefaults());
-
-        return http.build();
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authBuilder.userDetailsService(userDetailsService)
-                .passwordEncoder(passwordEncoder());
-        return authBuilder.build();
-    }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
-    public InMemoryUserDetailsManager userDetailsManager(PasswordEncoder passwordEncoder) {
-        // Временный пользователь для тестирования
-        UserDetails admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("admin")) // Пароль "admin" будет закодирован
-                .roles("ADMIN", "USER") // Добавляем роли
-                .build();
+    public AuthenticationManager authenticationManager(HttpSecurity http,
+                                                       CustomUserDetailsService userDetailsService,
+                                                       PasswordEncoder passwordEncoder) throws Exception {
+        var authManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        authManagerBuilder.userDetailsService(userDetailsService);
 
-        // Вы можете добавить других тестовых пользователей
-        UserDetails user = User.builder()
-                .username("user")
-                .password(passwordEncoder.encode("user"))
-                .roles("USER")
-                .build();
+        var authProvider = new DaoAuthenticationProvider(passwordEncoder);
+        authProvider.setUserDetailsService(userDetailsService);
 
-        return new InMemoryUserDetailsManager(admin, user);
+        authManagerBuilder.authenticationProvider(authProvider);
+        return authManagerBuilder.build();
+    }
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
+        http.authorizeHttpRequests(auth -> auth
+
+                        // 💥 НОВОЕ ПРАВИЛО: Разрешаем доступ к Swagger UI и API Docs
+                        // Более современный синтаксис (если ваша версия Spring Boot это поддерживает)
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+
+                        // --- Существующие правила ---
+                        .requestMatchers(HttpMethod.POST, "/api/user/**").permitAll() // Регистрация
+
+                        // Публичный доступ к просмотру
+                        .requestMatchers(HttpMethod.GET, "/api/hotel/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/room/**").permitAll()
+
+                        // Защищенные эндпоинты (только ADMIN)
+                        .requestMatchers("/api/hotel/**").hasAnyRole("ADMIN")
+                        .requestMatchers("/api/room/**").hasAnyRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/booking/**").hasAnyRole("ADMIN")
+                        .requestMatchers("/api/statistics/**").hasAnyRole("ADMIN")
+
+                        // Все остальные запросы должны быть аутентифицированы
+                        .anyRequest().authenticated()
+                )
+                .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(Customizer.withDefaults())
+                .sessionManagement(httpSecuritySessionManagementConfigurer ->
+                        httpSecuritySessionManagementConfigurer.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authenticationManager(authenticationManager);
+
+        return http.build();
     }
 }

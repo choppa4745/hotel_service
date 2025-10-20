@@ -2,6 +2,9 @@ package com.example.hotel.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -34,5 +37,8 @@ public class User {
     @Column(name = "role")
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Booking> bookings = new ArrayList<>();
 }
 

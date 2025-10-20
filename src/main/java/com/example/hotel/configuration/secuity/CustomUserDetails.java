@@ -1,6 +1,7 @@
 package com.example.hotel.configuration.secuity;
 
 import com.example.hotel.entity.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,13 +9,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class CustomUserDetails implements UserDetails {
 
     private final User user;
-
-    public CustomUserDetails(User user) {
-        this.user = user;
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -22,7 +20,6 @@ public class CustomUserDetails implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority(role.name())) // <-- name() превращает enum в String
                 .collect(Collectors.toSet());
     }
-
 
     @Override
     public String getPassword() {
@@ -36,21 +33,21 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true; // или добавить поле в User
+        return true;
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true; // или добавить поле в User
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true; // или добавить поле в User
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        return true; // или добавить поле в User
+        return true;
     }
 }

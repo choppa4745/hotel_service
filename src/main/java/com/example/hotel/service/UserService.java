@@ -1,5 +1,6 @@
 package com.example.hotel.service;
 
+import com.example.hotel.entity.User;
 import com.example.hotel.web.model.request.UpsertUserRequest;
 import com.example.hotel.web.model.response.UserResponse;
 import java.util.List;
@@ -13,5 +14,6 @@ public interface UserService {
     void deleteUser(UUID id);
     UserResponse findByUsername(String username);
     UserResponse findByEmail(String email);
+    User getUserByUsername(String username);
 
 }
