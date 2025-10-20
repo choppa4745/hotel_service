@@ -1,23 +1,28 @@
-package com.example.hotel.secuity;
+package com.example.hotel.configuration.secuity;
 
 import com.example.hotel.entity.User;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
-public class SecurityUser implements UserDetails {
+public class CustomUserDetails implements UserDetails {
+
     private final User user;
+
+    public CustomUserDetails(User user) {
+        this.user = user;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles().stream()
-                .map(role -> new SimpleGrantedAuthority(role.name()))
-                .collect(Collectors.toList());
+                .map(role -> new SimpleGrantedAuthority(role.name())) // <-- name() превращает enum в String
+                .collect(Collectors.toSet());
     }
+
 
     @Override
     public String getPassword() {
@@ -31,21 +36,21 @@ public class SecurityUser implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return true;
+        return true; // или добавить поле в User
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return true;
+        return true; // или добавить поле в User
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return true;
+        return true; // или добавить поле в User
     }
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return true; // или добавить поле в User
     }
 }
